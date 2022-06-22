@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <title>Canvas animation editor</title>
+ <meta charset="UTF-8"/> 
+ <style>
+  body {color: white; background-color: black; margin: 0; padding: 0}
+  header {margin-left: 10%; margin-right: 10%; text-align: center;}
+  details {background-color: darkgreen; margin-left: 15%; margin-right: 15%; margin-top: 40px; text-align: center;}
+  #contingut {font-size: 18px; background-color: #333333; margin-left: 10%; margin-right: 10%; margin-top: 40px;}
+  footer, span {text-align: center; margin-top: 40px;}
+  ul, li {list-style: none; display:inline-block;}
+  li {width: 180px;}
+  .menu {background-color: purple; text-decoration: none; font-size: 30px; color: red;}
+  h1 {font-size: 65px;}
+  span {color: white;}
+  canvas {background-color: white; align-self: center;}
+  #canvasdivid {text-align: center;}
+  #drop_zone_bg {border: 5px solid blue; width:  200px; height: 100px;}
+  #drop_zone_img1 {border: 5px solid blue; width:  200px; height: 100px;}
+ </style>
+ <script>
+  var canvasx;
+  var canvasy;
+  var imagex;
+  var imagey;
+  var imagezindex;
+  var animationbeginx;
+  var animationbeginy;
+  var animationendx;
+  var animationendy;
+  var timeout;
+  var imagecanvasbackground = new Image();
+  var image1 = new Image();
+  var canvas;
+  var ctx;
+  var filebg;
+  var fileimg1;
+  var nowximg1;
+  var nowyimg1;
+  var animationrun = false;
+  function dropHandlerbg(ev) 
+   {
+   console.log('File(s) dropped');
+   // Prevent default behavior (Prevent file from being opened)
+   ev.preventDefault();
+   if (ev.dataTransfer.items) 
+    {
+    // Use DataTransferItemList interface to access the file(s)
+    for (let i = 0; i < ev.dataTransfer.items.length; i++) 
+     {
+     // If dropped items aren't files, reject them
+     if (ev.dataTransfer.items[i].kind === 'file') 
+      {
+      filebg = ev.dataTransfer.items[i].getAsFile();
+      console.log('... file[' + i + '].name = ' + filebg.name);
+      }
+     }
+    } 
+   else 
+    {
+    // Use DataTransfer interface to access the file(s)
+    for (let i = 0; i < ev.dataTransfer.files.length; i++) 
+     {
+     console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+     }
+    }
+   }
+  function dragOverHandlerbg(ev) 
+   {
+   console.log('File(s) in drop zone');
+   // Prevent default behavior (Prevent file from being opened)
+   ev.preventDefault();
+   }
+  function dropHandlerimg1(ev) 
+   {
+   console.log('File(s) dropped');
+   // Prevent default behavior (Prevent file from being opened)
+   ev.preventDefault();
+   if (ev.dataTransfer.items) 
+    {
+    // Use DataTransferItemList interface to access the file(s)
+    for (let i = 0; i < ev.dataTransfer.items.length; i++) 
+     {
+     // If dropped items aren't files, reject them
+     if (ev.dataTransfer.items[i].kind === 'file') 
+      {
+      fileimg1 = ev.dataTransfer.items[i].getAsFile();
+      console.log('... file[' + i + '].name = ' + fileimg1.name);
+      }
+     }
+    } 
+   else 
+    {
+    // Use DataTransfer interface to access the file(s)
+    for (let i = 0; i < ev.dataTransfer.files.length; i++) 
+     {
+     console.log('... file[' + i + '].name = ' + ev.dataTransfer.files[i].name);
+     }
+    }
+   }
+  function dragOverHandlerimg1(ev) 
+   {
+   console.log('File(s) in drop zone');
+   // Prevent default behavior (Prevent file from being opened)
+   ev.preventDefault();
+   }
+  function getvars()
+   {
+   canvasx = parseInt(document.getElementById("canvasx").value);
+   canvasy = parseInt(document.getElementById("canvasy").value);
+   //canvasbackground = document.getElementById("canvasbackgroundfile");
+   //canvasbackground.onchange = () => {canvasbackgroundfile = canvasbackground.files[0];}
+   //for (let i in canvasbackground.files[0]) {console.log(i);}
+   //canvasbackground.files[0].forEach(function(currentValue, index, arr), thisValue);
+   //console.log(canvasbackground.files[0].path + canvasbackground.files[0].name);
+   //console.log(canvasbackground.files[0].mozFullPath + canvasbackground.files[0].name);
+   //imagepath = document.getElementById("imagepath").value;
+   imagex = parseInt(document.getElementById("imagexsize").value);
+   imagey = parseInt(document.getElementById("imageysize").value);
+   imagezindex = parseInt(document.getElementById("imagezindex").value);
+   animationbeginx = parseInt(document.getElementById("animationbeginx").value);
+   animationbeginy = parseInt(document.getElementById("animationbeginy").value);
+   animationendx = parseInt(document.getElementById("animationendx").value);
+   animationendy = parseInt(document.getElementById("animationendy").value);
+   timeout = parseInt(document.getElementById("timeout").value);
+   setcanvassize();
+   }
+  function setcanvassize()
+   {
+   canvas = document.getElementById("canvasid");
+   if (canvas.getContext) {ctx = canvas.getContext("2d");}
+   canvas.width=canvasx;
+   canvas.height=canvasy;
+   setcanvasbackground();
+   }
+  function setcanvasbackground()
+   {
+   imagecanvasbackground.setAttribute("src", filebg.name);
+   setcanvasimg1();
+   }
+  function setcanvasimg1()
+   {
+   image1.setAttribute("src", fileimg1.name);
+   draw();
+   } 
+  function draw()
+   {
+   ctx.beginPath();    
+   ctx.drawImage(imagecanvasbackground,0,0,canvasx,canvasy);
+   ctx.drawImage(image1,nowximg1,nowyimg1,imagex,imagey);
+   move();
+   }
+  function move()
+   {
+   if (animationrun==false)
+    {
+    document.getElementById("details").removeAttribute("open");
+    nowximg1 = animationbeginx;
+    nowyimg1 = animationbeginy;
+    animationrun=true;
+    }
+   //x 
+   if (nowximg1<animationendx) 
+    {
+    nowximg1++;
+    }
+   if (nowximg1>animationendx) 
+    {
+    nowximg1--;
+    }  
+   //y
+   if (nowyimg1<animationendy) 
+    {
+    nowyimg1++;
+    }
+   if (nowyimg1>animationendy) 
+    {
+    nowyimg1--;
+    }
+   setTimeout(draw,timeout)
+   }
+ </script>
+</head>
+<body>
+ <!-- Capçalera: Titol i subtitol -->
+ <header>
+  <h1>Canvas animation editor</h1>
+ </header>
+ <!-- Menu de navegacio per les nostres pagines (en el nostre servidor) -->
+ <details id="details">
+  <summary>Configuration</summary>
+  <ul>
+   <li><input id="run" type="button" value="Run animation" onclick="getvars();"></li>
+   <hr>
+   <li><span>Canvas</span></li>
+   <li><span>width x px</span><input type="text" value="640" id="canvasx"></li>
+   <li><span>height y px</span><input type="text" value="480" id="canvasy"></li>
+   <br>
+   <br>
+   <li><span>Background file</span></li>
+   <li>
+	 <div id="drop_zone_bg" ondrop="dropHandlerbg(event);" ondragover="dragOverHandlerbg(event);">
+     <p>Drag one or more files to this Drop Zone ...</p>
+    </div>
+   </li>
+   <hr>
+   <li><span>Image file</span></li>
+   <li>
+	 <div id="drop_zone_img1" ondrop="dropHandlerimg1(event);" ondragover="dragOverHandlerimg1(event);">
+     <p>Drag one or more files to this Drop Zone ...</p>
+    </div>   
+   </li>
+   <br>
+   <li><span>Image size on canvas</span></li>
+   <li><span>x px size</span><input type="text" id="imagexsize"></li>
+   <li><span>y px size</span><input type="text" id="imageysize"></li>
+   <li><span>z-index</span><input type="text" value="1" id="imagezindex"></li>
+   <hr>
+   <li><span>Animation begin</span></li>
+   <li><span>canvas x px</span><input type="text" id="animationbeginx"></li>
+   <li><span>canvas y px</span><input type="text" id="animationbeginy"></li>
+   <br>
+   <li><span>Animation end</span></li>
+   <li><span>canvas x px</span><input type="text" id="animationendx"></li>
+   <li><span>canvas y px</span><input type="text" id="animationendy"></li>
+   <br>
+   <li><span>Timeout</span></li>
+   <li><span>Miliseconds</span><input type="text" id="timeout"></li>
+   <br>
+  <ul>
+ </details>
+ <!-- Zona principal o zona del contingut -->
+ <div id="contingut">
+  <div id="canvasdivid">
+   <canvas id="canvasid" width="50px" height="50px">
+    Your web browser does not support canvas.
+   </canvas>
+  </div>
+ </div>
+ <!-- Peu de pagina: per exemple: data i signatura -->
+ <footer>
+  <span>misterwww 2022</span>
+ </footer>
+</body>
+</html> 
